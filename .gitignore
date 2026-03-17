@@ -1,0 +1,33 @@
+# Python Environments
+backend/venv/
+backend/env/
+backend/.venv/
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Node.js
+node_modules/
+dist/
+build/
+npm-debug.log*
+
+# Platform Specific
+.DS_Store
+Thumbs.db
+*.swp
+
+# IDEs and Tools
+.vscode/
+.idea/
+.spyderproject
+.ropeproject
+
+# Data
+backend/data/
+*.parquet
+*.csv
