@@ -1,8 +1,11 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List
 import polars as pl
 import os
 import shutil
+from processor import DataEngine
 
 app = FastAPI(title="No-Code DS Platform API")
 
@@ -31,6 +34,45 @@ os.makedirs(DATA_DIR, exist_ok=True)
 @app.get("/")
 def read_root():
     return {"message": "No-Code DS API running"}
+
+class PreprocessRequest(BaseModel):
+    missing_strategy: str = "drop" # drop, mean, median
+    encode_columns: List[str] = []
+    scale_columns: List[str] = []
+    scale_method: str = "Standard" # Standard, MinMax
+
+@app.post("/preprocess")
+def preprocess_data(req: PreprocessRequest):
+    if not os.path.exists(ACTIVE_FILE):
+        raise HTTPException(status_code=404, detail="No dataset uploaded")
+        
+    try:
+        df = pl.read_parquet(ACTIVE_FILE)
+        
+        # 1. Handle missing
+        df = DataEngine.handle_missing(df, strategy=req.missing_strategy)
+        
+        # 2. Encode categorical
+        if req.encode_columns:
+            df = DataEngine.encode_categorical(df, columns=req.encode_columns)
+            
+        # 3. Scale numeric
+        if req.scale_columns:
+            df = DataEngine.scale_data(df, columns=req.scale_columns, method=req.scale_method)
+            
+        # Save back to active file
+        df.write_parquet(ACTIVE_FILE)
+        
+        return {
+            "status": "success",
+            "message": "Data preprocessed successfully",
+            "rows": df.height,
+            "columns": df.width,
+            "column_names": df.columns
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 
