@@ -1,5 +1,10 @@
 import polars as pl
 from sklearn.preprocessing import OneHotEncoder, StandardScaler, MinMaxScaler
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from typing import Dict, Any, Optional
 import numpy as np
 
 class DataEngine:
@@ -98,3 +103,64 @@ class DataEngine:
             "null_counts": null_counts,
             "numeric_stats": stats
         }
+
+class ModelEngine:
+    @staticmethod
+    def train_classification_model(df: pl.DataFrame, target_col: str, feature_cols: list[str], model_type: str, hyperparameters: Optional[Dict[str, Any]] = None) -> dict:
+        if not target_col in df.columns:
+            raise ValueError(f"Target column '{target_col}' not found in dataframe.")
+            
+        for col in feature_cols:
+            if col not in df.columns:
+                raise ValueError(f"Feature column '{col}' not found in dataframe.")
+                
+        # Drop rows with nulls in features or target for simple model training
+        df_clean = df.drop_nulls(subset=feature_cols + [target_col])
+        
+        X = df_clean.select(feature_cols).to_numpy()
+        y = df_clean.select(target_col).to_numpy().ravel()
+        
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        
+        if hyperparameters is None:
+            params = {}
+        else:
+            params = hyperparameters
+
+        
+        if model_type == 'LogisticRegression':
+            C = params.get('C', 1.0)
+            model = LogisticRegression(C=C, max_iter=1000, random_state=42)
+        elif model_type == 'RandomForestClassifier':
+            n_estimators = params.get('n_estimators', 100)
+            max_depth = params.get('max_depth', None)
+            model = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, random_state=42)
+        else:
+            raise ValueError(f"Unsupported model type: {model_type}")
+            
+        model.fit(X_train, y_train)
+        
+        y_pred = model.predict(X_test)
+        
+        accuracy = accuracy_score(y_test, y_pred)
+        
+        # Determine average parameter based on number of classes
+        unique_classes = np.unique(y)
+        avg_method = 'binary' if len(unique_classes) == 2 else 'weighted'
+        
+        precision = precision_score(y_test, y_pred, average=avg_method, zero_division=0)
+        recall = recall_score(y_test, y_pred, average=avg_method, zero_division=0)
+        f1 = f1_score(y_test, y_pred, average=avg_method, zero_division=0)
+        
+        return {
+            "model": model_type,
+            "hyperparameters": params,
+            "classes": len(unique_classes),
+            "metrics": {
+                "accuracy": float(accuracy),
+                "precision": float(precision),
+                "recall": float(recall),
+                "f1_score": float(f1)
+            }
+        }
+

@@ -1,11 +1,11 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List
+from typing import List, Dict, Any, Optional
 import polars as pl
 import os
 import shutil
-from processor import DataEngine
+from processor import DataEngine, ModelEngine
 
 app = FastAPI(title="No-Code DS Platform API")
 
@@ -72,6 +72,36 @@ def preprocess_data(req: PreprocessRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+class TrainRequest(BaseModel):
+    target_column: str
+    feature_columns: List[str]
+    model_type: str
+    hyperparameters: Optional[Dict[str, Any]] = None
+
+@app.post("/train")
+def train_model(req: TrainRequest):
+    if not os.path.exists(ACTIVE_FILE):
+        raise HTTPException(status_code=404, detail="No dataset uploaded")
+        
+    try:
+        df = pl.read_parquet(ACTIVE_FILE)
+        
+        results = ModelEngine.train_classification_model(
+            df=df,
+            target_col=req.target_column,
+            feature_cols=req.feature_columns,
+            model_type=req.model_type,
+            hyperparameters=req.hyperparameters
+        )
+        
+        return {
+            "status": "success",
+            "results": results
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 

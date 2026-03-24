@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import UploadForm from './components/UploadForm';
 import DataTable from './components/DataTable';
 import PreprocessingForm from './components/PreprocessingForm';
+import ModelSelectionForm from './components/ModelSelectionForm';
 
 interface DatasetInfo {
   filename: string;
@@ -64,9 +65,7 @@ function App() {
               setDataset({...dataset, rows: newDataset.rows, columns: newDataset.columns, column_names: newDataset.column_names});
             }} />
             
-            <div className="pt-8 text-center text-gray-500 italic">
-              (Model Configuration UI pending...)
-            </div>
+            <ModelSelectionForm columns={dataset.column_names} />
           </div>
         )}
       </main>
