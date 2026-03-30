@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, FileType, AlertCircle } from 'lucide-react';
+import { Upload, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 
 interface UploadFormProps {
@@ -42,18 +42,18 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUploadSuccess }) => {
   };
 
   return (
-    <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-100 w-full max-w-2xl mx-auto text-center transition-all hover:shadow-md">
+    <div className="bg-white p-8 sm:p-12 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-zinc-200/80 w-full max-w-xl mx-auto text-center transition-all hover:border-zinc-300">
       <div className="mb-6 flex justify-center">
-        <div className="bg-blue-50 p-5 rounded-full ring-8 ring-blue-50/50">
-          <FileType className="w-12 h-12 text-blue-600" />
+        <div className="w-12 h-12 bg-zinc-100 rounded-xl flex items-center justify-center border border-zinc-200/60 shadow-sm">
+          <Upload className="w-5 h-5 text-zinc-700" strokeWidth={2.5} />
         </div>
       </div>
-      <h3 className="text-2xl font-bold mb-3 text-gray-900">Upload Dataset</h3>
-      <p className="text-gray-500 mb-8 max-w-sm mx-auto">Select a CSV file to begin. Your data will be processed rapidly using Polars.</p>
+      <h3 className="text-[17px] font-semibold mb-2 text-zinc-900 tracking-tight">Select a file</h3>
+      <p className="text-[14px] text-zinc-500 mb-8 max-w-[280px] mx-auto leading-relaxed">CSV files up to 50MB are supported. First row must contain headers.</p>
       
       {error && (
-        <div className="mb-6 bg-red-50 text-red-700 p-4 rounded-xl flex items-center justify-center gap-3 text-sm font-medium">
-          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+        <div className="mb-6 bg-red-50 text-red-600 p-3 rounded-lg flex items-start gap-2 text-[13px] font-medium border border-red-100/50 text-left">
+          <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
           <span>{error}</span>
         </div>
       )}
@@ -69,17 +69,14 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUploadSuccess }) => {
         <button 
           onClick={() => fileInputRef.current?.click()}
           disabled={isUploading}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-3 mx-auto disabled:opacity-70 disabled:cursor-not-allowed shadow-sm hover:shadow active:scale-[0.98]"
+          className="w-full bg-zinc-900 hover:bg-zinc-800 text-white px-6 py-3 rounded-xl text-[14px] font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-[0_1px_2px_rgba(0,0,0,0.12)] active:scale-[0.99]"
         >
           {isUploading ? (
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-          ) : (
-            <Upload className="w-5 h-5" />
-          )}
-          {isUploading ? 'Uploading & Processing...' : 'Select CSV File'}
+            <div className="animate-spin rounded-full h-4 w-4 border-b-[1.5px] border-white"></div>
+          ) : null}
+          {isUploading ? 'Uploading...' : 'Choose file'}
         </button>
       </div>
-      <p className="mt-5 text-xs text-gray-400 tracking-wide uppercase font-semibold">Max size 50MB &bull; First row headers</p>
     </div>
   );
 }
