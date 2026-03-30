@@ -58,7 +58,7 @@ const PreprocessingForm: React.FC<PreprocessingFormProps> = ({ onPreprocessSucce
       }
 
       onPreprocessSuccess({
-        filename: 'active_dataset.parquet', // keep dummy name or adjust as needed
+        filename: 'active_dataset.parquet',
         rows: data.rows,
         columns: data.columns,
         column_names: data.column_names
@@ -72,22 +72,25 @@ const PreprocessingForm: React.FC<PreprocessingFormProps> = ({ onPreprocessSucce
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mt-6">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800">Data Preprocessing</h2>
+    <div className="bg-white p-6 sm:p-8 rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-zinc-200/80">
+      <div className="mb-6">
+        <h2 className="text-[15px] font-semibold text-zinc-900 tracking-tight">Data Preprocessing</h2>
+        <p className="text-[13px] text-zinc-500 mt-1">Clean and prepare your dataset for modeling</p>
+      </div>
       
       {error && (
-        <div className="mb-4 bg-red-50 text-red-600 p-3 rounded-md text-sm">
+        <div className="mb-6 bg-red-50 text-red-600 p-3 rounded-lg text-[13px] font-medium border border-red-100/50">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-8">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Missing Values Strategy</label>
+          <label className="block text-[13px] font-medium text-zinc-700 mb-2">Missing Values Strategy</label>
           <select 
             value={missingStrategy} 
             onChange={e => setMissingStrategy(e.target.value)}
-            className="w-full sm:w-64 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+            className="w-full sm:w-64 bg-zinc-50 border border-zinc-200 text-zinc-900 text-[13px] rounded-lg focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400 block p-2.5 transition-all outline-none"
           >
             <option value="drop">Drop Rows with Nulls</option>
             <option value="mean">Impute with Mean (Numeric)</option>
@@ -97,17 +100,17 @@ const PreprocessingForm: React.FC<PreprocessingFormProps> = ({ onPreprocessSucce
 
         {catCols.length > 0 && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Encode Categorical Columns</label>
-            <div className="flex flex-wrap gap-3">
+            <label className="block text-[13px] font-medium text-zinc-700 mb-2">Encode Categorical Columns</label>
+            <div className="flex flex-wrap gap-2.5">
               {catCols.map(col => (
-                <label key={col} className="flex items-center space-x-2 bg-gray-50 px-3 py-2 rounded-md border border-gray-200 cursor-pointer hover:bg-gray-100">
+                <label key={col} className={`flex items-center space-x-2 px-3 py-2 rounded-lg border cursor-pointer transition-all ${selectedEncode.includes(col) ? 'bg-zinc-900 border-zinc-900 text-white' : 'bg-white border-zinc-200 hover:border-zinc-300 text-zinc-700'}`}>
                   <input 
                     type="checkbox" 
                     checked={selectedEncode.includes(col)}
                     onChange={() => handleCheckbox(col, selectedEncode, setSelectedEncode)}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    className="hidden"
                   />
-                  <span className="text-sm text-gray-700">{col}</span>
+                  <span className="text-[13px] font-medium">{col}</span>
                 </label>
               ))}
             </div>
@@ -116,39 +119,40 @@ const PreprocessingForm: React.FC<PreprocessingFormProps> = ({ onPreprocessSucce
 
         {numCols.length > 0 && (
           <div>
-            <div className="flex justify-between items-center mb-2 max-w-2xl">
-              <label className="block text-sm font-medium text-gray-700">Scale Numeric Columns</label>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 max-w-2xl gap-3">
+              <label className="block text-[13px] font-medium text-zinc-700">Scale Numeric Columns</label>
               <select 
                 value={scaleMethod} 
                 onChange={e => setScaleMethod(e.target.value)}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-1.5"
+                className="w-full sm:w-40 bg-zinc-50 border border-zinc-200 text-zinc-900 text-[13px] rounded-lg focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400 block p-2 transition-all outline-none"
               >
                 <option value="Standard">StandardScaler</option>
                 <option value="MinMax">MinMaxScaler</option>
               </select>
             </div>
-            <div className="flex flex-wrap gap-3 max-w-2xl">
+            <div className="flex flex-wrap gap-2.5 max-w-2xl">
               {numCols.map(col => (
-                <label key={col} className="flex items-center space-x-2 bg-gray-50 px-3 py-2 rounded-md border border-gray-200 cursor-pointer hover:bg-gray-100">
+                <label key={col} className={`flex items-center space-x-2 px-3 py-2 rounded-lg border cursor-pointer transition-all ${selectedScale.includes(col) ? 'bg-zinc-900 border-zinc-900 text-white' : 'bg-white border-zinc-200 hover:border-zinc-300 text-zinc-700'}`}>
                   <input 
                     type="checkbox" 
                     checked={selectedScale.includes(col)}
                     onChange={() => handleCheckbox(col, selectedScale, setSelectedScale)}
-                    className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+                    className="hidden"
                   />
-                  <span className="text-sm text-gray-700">{col}</span>
+                  <span className="text-[13px] font-medium">{col}</span>
                 </label>
               ))}
             </div>
           </div>
         )}
 
-        <div className="pt-4 border-t border-gray-100">
+        <div className="pt-6 border-t border-zinc-100 flex items-center justify-end">
           <button 
             type="submit" 
             disabled={isLoading}
-            className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg text-center shadow-sm w-full sm:w-auto disabled:opacity-50"
+            className="px-5 py-2.5 text-[13px] font-medium text-zinc-700 bg-white border border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300 rounded-lg text-center shadow-sm w-full sm:w-auto disabled:opacity-50 transition-all flex items-center justify-center gap-2"
           >
+            {isLoading && <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-[1.5px] border-zinc-700"></div>}
             {isLoading ? 'Processing...' : 'Apply Preprocessing'}
           </button>
         </div>

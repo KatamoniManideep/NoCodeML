@@ -74,6 +74,7 @@ def preprocess_data(req: PreprocessRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 class TrainRequest(BaseModel):
+    task_type: str # 'classification' or 'regression'
     target_column: str
     feature_columns: List[str]
     model_type: str
@@ -87,13 +88,24 @@ def train_model(req: TrainRequest):
     try:
         df = pl.read_parquet(ACTIVE_FILE)
         
-        results = ModelEngine.train_classification_model(
-            df=df,
-            target_col=req.target_column,
-            feature_cols=req.feature_columns,
-            model_type=req.model_type,
-            hyperparameters=req.hyperparameters
-        )
+        if req.task_type == "classification":
+            results = ModelEngine.train_classification_model(
+                df=df,
+                target_col=req.target_column,
+                feature_cols=req.feature_columns,
+                model_type=req.model_type,
+                hyperparameters=req.hyperparameters
+            )
+        elif req.task_type == "regression":
+            results = ModelEngine.train_regression_model(
+                df=df,
+                target_col=req.target_column,
+                feature_cols=req.feature_columns,
+                model_type=req.model_type,
+                hyperparameters=req.hyperparameters
+            )
+        else:
+            raise ValueError("task_type must be either 'classification' or 'regression'")
         
         return {
             "status": "success",
