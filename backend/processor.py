@@ -109,27 +109,18 @@ class DataEngine:
 class ModelEngine:
     @staticmethod
     def _detect_target_type(y: np.ndarray) -> str:
-        """Detect whether target values are suitable for classification or regression.
-        
-        Returns 'classification' if discrete, 'regression' if continuous.
-        """
-        # String/object targets are always classification
         if y.dtype.kind in ('U', 'S', 'O'):
             return 'classification'
         
-        # Boolean targets are classification
         if y.dtype.kind == 'b':
             return 'classification'
         
-        # Integer targets with few unique values → classification
         if y.dtype.kind == 'i' or y.dtype.kind == 'u':
             return 'classification'
         
-        # Float targets: check if they look like encoded classes or true continuous
         n_unique = len(np.unique(y[~np.isnan(y)])) if np.issubdtype(y.dtype, np.floating) else len(np.unique(y))
         unique_ratio = n_unique / len(y) if len(y) > 0 else 0
         
-        # Heuristic: ≤20 unique values AND ≤5% of total rows → likely class labels
         if n_unique <= 20 and unique_ratio <= 0.05:
             return 'classification'
         
@@ -137,7 +128,6 @@ class ModelEngine:
 
     @staticmethod
     def _validate_target_for_classification(y: np.ndarray, target_col: str) -> None:
-        """Raise a clear error if the target is continuous but classification was requested."""
         detected = ModelEngine._detect_target_type(y)
         if detected == 'regression':
             n_unique = len(np.unique(y[~np.isnan(y)])) if np.issubdtype(y.dtype, np.floating) else len(np.unique(y))
@@ -162,7 +152,6 @@ class ModelEngine:
         X = df_clean.select(feature_cols).to_numpy()
         y = df_clean.select(target_col).to_numpy().ravel()
         
-        # Validate that target is suitable for classification
         ModelEngine._validate_target_for_classification(y, target_col)
         
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -220,7 +209,6 @@ class ModelEngine:
             if col not in df.columns:
                 raise ValueError(f"Feature column '{col}' not found in dataframe.")
                 
-        # Drop rows with nulls in features or target for simple model training
         df_clean = df.drop_nulls(subset=feature_cols + [target_col])
         
         X = df_clean.select(feature_cols).to_numpy()

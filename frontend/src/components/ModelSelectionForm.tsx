@@ -10,10 +10,8 @@ const ModelSelectionForm: React.FC<ModelSelectionFormProps> = ({ columns }) => {
   const [targetColumn, setTargetColumn] = useState<string>('');
   const [featureColumns, setFeatureColumns] = useState<string[]>([]);
   
-  // Model defaults based on task type
   const [modelType, setModelType] = useState<string>('LogisticRegression');
   
-  // Hyperparameters
   const [lrC, setLrC] = useState<number>(1.0);
   const [rfEstimators, setRfEstimators] = useState<number>(100);
   const [rfMaxDepth, setRfMaxDepth] = useState<number | ''>('');
@@ -109,7 +107,6 @@ const ModelSelectionForm: React.FC<ModelSelectionFormProps> = ({ columns }) => {
         </div>
       )}
 
-      {/* Task Type Toggle */}
       <div className="mb-8 bg-zinc-50 p-1 rounded-lg inline-flex border border-zinc-100">
         <button
           type="button"

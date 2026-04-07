@@ -41,10 +41,10 @@ def read_root():
     return {"message": "No-Code DS API running"}
 
 class PreprocessRequest(BaseModel):
-    missing_strategy: str = "drop" # drop, mean, median
+    missing_strategy: str = "drop"
     encode_columns: List[str] = []
     scale_columns: List[str] = []
-    scale_method: str = "Standard" # Standard, MinMax
+    scale_method: str = "Standard"
 
 @app.post("/preprocess")
 def preprocess_data(req: PreprocessRequest):
@@ -54,18 +54,14 @@ def preprocess_data(req: PreprocessRequest):
     try:
         df = pl.read_parquet(ACTIVE_FILE)
         
-        # 1. Handle missing
         df = DataEngine.handle_missing(df, strategy=req.missing_strategy)
         
-        # 2. Encode categorical
         if req.encode_columns:
             df = DataEngine.encode_categorical(df, columns=req.encode_columns)
             
-        # 3. Scale numeric
         if req.scale_columns:
             df = DataEngine.scale_data(df, columns=req.scale_columns, method=req.scale_method)
             
-        # Save back to active file
         df.write_parquet(ACTIVE_FILE)
         
         return {
@@ -79,7 +75,7 @@ def preprocess_data(req: PreprocessRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 class TrainRequest(BaseModel):
-    task_type: str # 'classification' or 'regression'
+    task_type: str
     target_column: str
     feature_columns: List[str]
     model_type: str
@@ -112,7 +108,6 @@ def train_model(req: TrainRequest):
         else:
             raise ValueError("task_type must be either 'classification' or 'regression'")
         
-        # --- Save model with joblib ---
         trained_model = results.pop("trained_model")
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         model_filename = f"{req.model_type}_{timestamp}.joblib"
