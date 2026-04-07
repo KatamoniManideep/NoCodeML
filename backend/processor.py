@@ -207,7 +207,8 @@ class ModelEngine:
                 "precision": float(precision),
                 "recall": float(recall),
                 "f1_score": float(f1)
-            }
+            },
+            "trained_model": model
         }
 
     @staticmethod
@@ -258,6 +259,7 @@ class ModelEngine:
                 "rmse": rmse,
                 "mae": float(mae),
                 "r2_score": float(r2)
-            }
+            },
+            "trained_model": model
         }
 

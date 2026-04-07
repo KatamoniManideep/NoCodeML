@@ -1,10 +1,13 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 import polars as pl
 import os
 import shutil
+import joblib
+from datetime import datetime
 from processor import DataEngine, ModelEngine
 
 app = FastAPI(title="No-Code DS Platform API")
@@ -26,9 +29,11 @@ app.add_middleware(
 )
 
 DATA_DIR = "data"
+MODELS_DIR = "models"
 ACTIVE_FILE = os.path.join(DATA_DIR, "active_dataset.parquet")
 
 os.makedirs(DATA_DIR, exist_ok=True)
+os.makedirs(MODELS_DIR, exist_ok=True)
 
 
 @app.get("/")
@@ -107,14 +112,49 @@ def train_model(req: TrainRequest):
         else:
             raise ValueError("task_type must be either 'classification' or 'regression'")
         
+        # --- Save model with joblib ---
+        trained_model = results.pop("trained_model")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        model_filename = f"{req.model_type}_{timestamp}.joblib"
+        model_path = os.path.join(MODELS_DIR, model_filename)
+        
+        model_artifact = {
+            "model": trained_model,
+            "metadata": {
+                "feature_columns": req.feature_columns,
+                "target_column": req.target_column,
+                "model_type": req.model_type,
+                "task_type": req.task_type,
+                "trained_at": timestamp,
+            }
+        }
+        joblib.dump(model_artifact, model_path)
+        
         return {
             "status": "success",
+            "model_name": model_filename,
+            "model_path": model_path,
+            "download_url": f"/download-model/{model_filename}",
             "results": results
         }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/download-model/{model_name}")
+def download_model(model_name: str):
+    model_path = os.path.join(MODELS_DIR, model_name)
+    
+    if not os.path.exists(model_path):
+        raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found")
+    
+    return FileResponse(
+        path=model_path,
+        filename=model_name,
+        media_type="application/octet-stream"
+    )
 
 
 
