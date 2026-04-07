@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Activity, BarChart2, Zap } from 'lucide-react';
+import { Activity, BarChart2, Download, Zap } from 'lucide-react';
 
 interface ModelSelectionFormProps {
   columns: string[];
@@ -10,10 +10,8 @@ const ModelSelectionForm: React.FC<ModelSelectionFormProps> = ({ columns }) => {
   const [targetColumn, setTargetColumn] = useState<string>('');
   const [featureColumns, setFeatureColumns] = useState<string[]>([]);
   
-  // Model defaults based on task type
   const [modelType, setModelType] = useState<string>('LogisticRegression');
   
-  // Hyperparameters
   const [lrC, setLrC] = useState<number>(1.0);
   const [rfEstimators, setRfEstimators] = useState<number>(100);
   const [rfMaxDepth, setRfMaxDepth] = useState<number | ''>('');
@@ -21,11 +19,15 @@ const ModelSelectionForm: React.FC<ModelSelectionFormProps> = ({ columns }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<any>(null);
   const [error, setError] = useState('');
+  const [modelName, setModelName] = useState<string>('');
+  const [downloadUrl, setDownloadUrl] = useState<string>('');
 
   const handleTaskTypeChange = (type: 'classification' | 'regression') => {
     setTaskType(type);
     setModelType(type === 'classification' ? 'LogisticRegression' : 'LinearRegression');
     setResults(null);
+    setModelName('');
+    setDownloadUrl('');
   };
 
   const handleFeatureToggle = (col: string) => {
@@ -50,6 +52,8 @@ const ModelSelectionForm: React.FC<ModelSelectionFormProps> = ({ columns }) => {
     setIsLoading(true);
     setError('');
     setResults(null);
+    setModelName('');
+    setDownloadUrl('');
 
     const hyperparameters: any = {};
     if (modelType === 'LogisticRegression') {
@@ -81,6 +85,8 @@ const ModelSelectionForm: React.FC<ModelSelectionFormProps> = ({ columns }) => {
       }
 
       setResults(data.results);
+      setModelName(data.model_name || '');
+      setDownloadUrl(data.download_url || '');
     } catch (err: any) {
       setError(err.message || 'An error occurred during training.');
     } finally {
@@ -101,7 +107,6 @@ const ModelSelectionForm: React.FC<ModelSelectionFormProps> = ({ columns }) => {
         </div>
       )}
 
-      {/* Task Type Toggle */}
       <div className="mb-8 bg-zinc-50 p-1 rounded-lg inline-flex border border-zinc-100">
         <button
           type="button"
@@ -255,10 +260,27 @@ const ModelSelectionForm: React.FC<ModelSelectionFormProps> = ({ columns }) => {
               </>
             )}
           </div>
-          <div className="flex items-center gap-4 text-[12px] text-zinc-500 bg-white p-3 rounded-lg border border-zinc-100">
-            <span className="flex items-center"><BarChart2 className="w-3.5 h-3.5 mr-1.5" /> {results.model}</span>
-            {taskType === 'classification' && <span>Classes: {results.classes}</span>}
+          <div className="flex items-center justify-between gap-4 bg-white p-3 rounded-lg border border-zinc-100">
+            <div className="flex items-center gap-4 text-[12px] text-zinc-500">
+              <span className="flex items-center"><BarChart2 className="w-3.5 h-3.5 mr-1.5" /> {results.model}</span>
+              {taskType === 'classification' && <span>Classes: {results.classes}</span>}
+            </div>
+            {downloadUrl && (
+              <a
+                href={`http://localhost:8000${downloadUrl}`}
+                download={modelName}
+                className="inline-flex items-center gap-2 px-4 py-2 text-[13px] font-medium text-white bg-zinc-900 hover:bg-zinc-800 rounded-lg shadow-[0_1px_2px_rgba(0,0,0,0.12)] transition-all"
+              >
+                <Download className="w-4 h-4" />
+                Download Model
+              </a>
+            )}
           </div>
+          {modelName && (
+            <p className="mt-3 text-[12px] text-zinc-400 font-mono truncate" title={modelName}>
+              {modelName}
+            </p>
+          )}
         </div>
       )}
     </div>
