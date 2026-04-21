@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Activity, BarChart2, Download, Zap } from 'lucide-react';
+import SuggestionsPanel from './SuggestionsPanel';
 
 interface ModelSelectionFormProps {
   columns: string[];
@@ -21,6 +22,8 @@ const ModelSelectionForm: React.FC<ModelSelectionFormProps> = ({ columns }) => {
   const [error, setError] = useState('');
   const [modelName, setModelName] = useState<string>('');
   const [downloadUrl, setDownloadUrl] = useState<string>('');
+  const [enableSuggestions, setEnableSuggestions] = useState(true);
+  const [suggestions, setSuggestions] = useState<any>(null);
 
   const handleTaskTypeChange = (type: 'classification' | 'regression') => {
     setTaskType(type);
@@ -54,6 +57,7 @@ const ModelSelectionForm: React.FC<ModelSelectionFormProps> = ({ columns }) => {
     setResults(null);
     setModelName('');
     setDownloadUrl('');
+    setSuggestions(null);
 
     const hyperparameters: any = {};
     if (modelType === 'LogisticRegression') {
@@ -74,7 +78,8 @@ const ModelSelectionForm: React.FC<ModelSelectionFormProps> = ({ columns }) => {
           target_column: targetColumn,
           feature_columns: featureColumns,
           model_type: modelType,
-          hyperparameters: hyperparameters
+          hyperparameters: hyperparameters,
+          enable_suggestions: enableSuggestions,
         }),
       });
 
@@ -87,6 +92,7 @@ const ModelSelectionForm: React.FC<ModelSelectionFormProps> = ({ columns }) => {
       setResults(data.results);
       setModelName(data.model_name || '');
       setDownloadUrl(data.download_url || '');
+      setSuggestions(data.suggestions || null);
     } catch (err: any) {
       setError(err.message || 'An error occurred during training.');
     } finally {
@@ -283,6 +289,12 @@ const ModelSelectionForm: React.FC<ModelSelectionFormProps> = ({ columns }) => {
           )}
         </div>
       )}
+
+      <SuggestionsPanel
+        suggestions={suggestions}
+        enabled={enableSuggestions}
+        onToggle={setEnableSuggestions}
+      />
     </div>
   );
 };

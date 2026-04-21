@@ -9,6 +9,7 @@ import shutil
 import joblib
 from datetime import datetime
 from processor import DataEngine, ModelEngine
+from suggestion_engine import SuggestionEngine
 
 app = FastAPI(title="No-Code DS Platform API")
 
@@ -80,6 +81,7 @@ class TrainRequest(BaseModel):
     feature_columns: List[str]
     model_type: str
     hyperparameters: Optional[Dict[str, Any]] = None
+    enable_suggestions: bool = False
 
 @app.post("/train")
 def train_model(req: TrainRequest):
@@ -125,13 +127,23 @@ def train_model(req: TrainRequest):
         }
         joblib.dump(model_artifact, model_path)
         
-        return {
+        response = {
             "status": "success",
             "model_name": model_filename,
             "model_path": model_path,
             "download_url": f"/download-model/{model_filename}",
             "results": results
         }
+
+        if req.enable_suggestions:
+            response["suggestions"] = SuggestionEngine.generate(
+                df=df,
+                target_col=req.target_column,
+                feature_cols=req.feature_columns,
+                task_type=req.task_type,
+            )
+
+        return response
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
