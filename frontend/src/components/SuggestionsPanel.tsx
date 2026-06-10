@@ -69,7 +69,7 @@ const SuggestionsPanel: React.FC<SuggestionsPanelProps> = ({ suggestions, enable
             <div className="rounded-xl border border-zinc-200/80 bg-[#f9fafb] px-6 py-8 flex items-center gap-3">
               <span className="w-[6px] h-[6px] rounded-full bg-zinc-300 animate-pulse shrink-0" />
               <p className="text-[13px] text-zinc-400 leading-none">
-                Train a model to see AI-powered suggestions.
+                Select a target column and features to see suggestions.
               </p>
             </div>
           ) : (

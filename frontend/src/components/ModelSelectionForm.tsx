@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Activity, BarChart2, Download, Zap } from 'lucide-react';
 import SuggestionsPanel from './SuggestionsPanel';
 
@@ -24,6 +24,42 @@ const ModelSelectionForm: React.FC<ModelSelectionFormProps> = ({ columns }) => {
   const [downloadUrl, setDownloadUrl] = useState<string>('');
   const [enableSuggestions, setEnableSuggestions] = useState(true);
   const [suggestions, setSuggestions] = useState<any>(null);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+
+  const fetchSuggestions = useCallback(async () => {
+    if (!targetColumn || featureColumns.length === 0 || !enableSuggestions) {
+      setSuggestions(null);
+      return;
+    }
+
+    setSuggestionsLoading(true);
+    try {
+      const response = await fetch('http://localhost:8000/suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          target_column: targetColumn,
+          feature_columns: featureColumns,
+          task_type: taskType,
+        }),
+      });
+      const data = await response.json();
+      if (response.ok && data.suggestions) {
+        setSuggestions(data.suggestions);
+      }
+    } catch {
+      // silently fail — suggestions are non-critical
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  }, [targetColumn, featureColumns, taskType, enableSuggestions]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      fetchSuggestions();
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [fetchSuggestions]);
 
   const handleTaskTypeChange = (type: 'classification' | 'regression') => {
     setTaskType(type);
@@ -57,7 +93,6 @@ const ModelSelectionForm: React.FC<ModelSelectionFormProps> = ({ columns }) => {
     setResults(null);
     setModelName('');
     setDownloadUrl('');
-    setSuggestions(null);
 
     const hyperparameters: any = {};
     if (modelType === 'LogisticRegression') {
@@ -79,7 +114,6 @@ const ModelSelectionForm: React.FC<ModelSelectionFormProps> = ({ columns }) => {
           feature_columns: featureColumns,
           model_type: modelType,
           hyperparameters: hyperparameters,
-          enable_suggestions: enableSuggestions,
         }),
       });
 
@@ -92,7 +126,6 @@ const ModelSelectionForm: React.FC<ModelSelectionFormProps> = ({ columns }) => {
       setResults(data.results);
       setModelName(data.model_name || '');
       setDownloadUrl(data.download_url || '');
-      setSuggestions(data.suggestions || null);
     } catch (err: any) {
       setError(err.message || 'An error occurred during training.');
     } finally {
@@ -231,6 +264,12 @@ const ModelSelectionForm: React.FC<ModelSelectionFormProps> = ({ columns }) => {
           </div>
         )}
 
+        <SuggestionsPanel
+          suggestions={suggestions}
+          enabled={enableSuggestions}
+          onToggle={setEnableSuggestions}
+        />
+
         <div className="pt-6 border-t border-zinc-100 flex items-center justify-end">
           <button
             type="submit"
@@ -289,12 +328,6 @@ const ModelSelectionForm: React.FC<ModelSelectionFormProps> = ({ columns }) => {
           )}
         </div>
       )}
-
-      <SuggestionsPanel
-        suggestions={suggestions}
-        enabled={enableSuggestions}
-        onToggle={setEnableSuggestions}
-      />
     </div>
   );
 };
