@@ -15,10 +15,14 @@ app = FastAPI(title="No-Code DS Platform API")
 
 
 origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
+    "http://localhost:5175",
+    "http://127.0.0.1:5175",
     "http://localhost:5176",
     "http://127.0.0.1:5176",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173"
 ]
 
 app.add_middleware(
@@ -75,13 +79,34 @@ def preprocess_data(req: PreprocessRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+class SuggestionRequest(BaseModel):
+    target_column: str
+    feature_columns: List[str]
+    task_type: str = "classification"
+
+@app.post("/suggestions")
+def get_suggestions(req: SuggestionRequest):
+    if not os.path.exists(ACTIVE_FILE):
+        raise HTTPException(status_code=404, detail="No dataset uploaded")
+
+    try:
+        df = pl.read_parquet(ACTIVE_FILE)
+        suggestions = SuggestionEngine.generate(
+            df=df,
+            target_col=req.target_column,
+            feature_cols=req.feature_columns,
+            task_type=req.task_type,
+        )
+        return {"status": "success", "suggestions": suggestions}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 class TrainRequest(BaseModel):
     task_type: str
     target_column: str
     feature_columns: List[str]
     model_type: str
     hyperparameters: Optional[Dict[str, Any]] = None
-    enable_suggestions: bool = False
 
 @app.post("/train")
 def train_model(req: TrainRequest):
@@ -127,23 +152,13 @@ def train_model(req: TrainRequest):
         }
         joblib.dump(model_artifact, model_path)
         
-        response = {
+        return {
             "status": "success",
             "model_name": model_filename,
             "model_path": model_path,
             "download_url": f"/download-model/{model_filename}",
             "results": results
         }
-
-        if req.enable_suggestions:
-            response["suggestions"] = SuggestionEngine.generate(
-                df=df,
-                target_col=req.target_column,
-                feature_cols=req.feature_columns,
-                task_type=req.task_type,
-            )
-
-        return response
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
