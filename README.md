@@ -1,12 +1,12 @@
-# No-Code ML (No-Code Data Science Platform)
+# No-Code ML 
 
 A full-stack, easy-to-use platform for training, preprocessing, and deploying machine learning models without writing a single line of code. Designed for data science enthusiasts, analysts, and beginners, this tool lets you upload datasets, preview and preprocess them, obtain automatic recommendations, and train regression or classification models directly from a modern web UI.
 
 ---
 
-## 🚀 Features
+##  Features
 
-### 🔹 Backend (FastAPI & Polars)
+###  Backend (FastAPI & Polars)
 - **High-Performance Data Ingestion**: Upload `.csv` datasets, which are automatically converted to `.parquet` format using Polars for high-speed processing and caching.
 - **Robust Preprocessing Pipeline**:
   - Missing value strategies (e.g., dropping nulls, imputation).
@@ -19,14 +19,14 @@ A full-stack, easy-to-use platform for training, preprocessing, and deploying ma
   - Customize hyperparameters directly from the API or frontend.
 - **Model Storage & Export**: Downloads trained models as serialized `.joblib` files along with runtime feature/target metadata.
 
-### 🔹 Frontend (React + TypeScript + Vite)
+###  Frontend (React + TypeScript + Vite)
 - **Interactive UI**: A modern interface for uploading datasets, previewing row values, and analyzing schema types.
 - **Step-by-Step Guidance**: Guides you through selecting features, defining targets, choosing task types, preprocessing, and triggering model execution.
 - **No-Code Flow**: Visual components that require absolutely no programming knowledge to build predictive models.
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```text
 ├── backend/
@@ -49,7 +49,7 @@ A full-stack, easy-to-use platform for training, preprocessing, and deploying ma
 
 ---
 
-## 🛠️ Getting Started
+##  Getting Started
 
 ### Prerequisites
 - **Python**: version `3.9` or higher
@@ -109,7 +109,7 @@ A full-stack, easy-to-use platform for training, preprocessing, and deploying ma
 
 ---
 
-## 🧪 Testing with Dummy Dataset
+##  Testing with Dummy Dataset
 
 A `dummy_dataset.csv` is provided at the root of the workspace. You can upload this file to the platform to test:
 1. Data preview and datatype inference.
@@ -119,6 +119,6 @@ A `dummy_dataset.csv` is provided at the root of the workspace. You can upload t
 
 ---
 
-## 📄 License
+##  License
 
-This project is licensed under the MIT License. Feel free to use and modify it as needed.
+
